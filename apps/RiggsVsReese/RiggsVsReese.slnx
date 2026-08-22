@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RiggsVsReese/RiggsVsReese.csproj" />
+    <Project Path="src/RiggsVsReese.Core/RiggsVsReese.Core.csproj" />
+    <Project Path="src/RiggsVsReese.Infrastructure/RiggsVsReese.Infrastructure.csproj" />
+  </Folder>
+</Solution>
