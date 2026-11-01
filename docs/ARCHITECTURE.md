@@ -167,11 +167,40 @@ Placera ny kod genom att fråga i denna ordning:
 
 ### Game state
 
-C#-objekt under körning, med JSON-fil för sparning.
+C#-objekt under körning, med JSON-fil för sparning när save/load byggs.
 
 Ingen databas i den första versionen.
 
-Game state ska innehålla modeller för spelaren och spelarens inventory. Regler och tool calls ska läsa och uppdatera dessa modeller genom spelmotorn.
+Game state ska innehålla modeller för spelaren, spelarens utrustning och spelarens inventory. Vapen och magasin är egna domänobjekt och ska inte modelleras som generiska `Item`-poster när deras regler blir mer detaljerade.
+
+#### Vapen och magasin
+
+Vapenmodellen ska uttrycka relationen mellan ett vapen och magasinet som sitter i det. Ett reservmagasin är i stället ett löst föremål i spelarens inventory.
+
+```text
+GameSession
+└── PlayerState
+    ├── EquippedWeapon: Beretta 92F
+    │   └── LoadedMagazine: 15 skott
+    └── Inventory
+        └── ExtraMagazine: 15 skott
+```
+
+Detta gör skillnad på vapnets utrustning och spelarens lösa föremål. Ett magasin behöver bland annat kunna beskriva kapacitet och aktuellt antal skott. Ett vapen behöver kunna vara utrustat, avfyras och laddas om.
+
+I den påbörjade modellen under `Core/Items/Weapons` skiljer vi på definition och runtime-tillstånd:
+
+- `WeaponDefinition` beskriver vapnets fasta egenskaper, som namn, vapentyp, skada, eldhastighet och räckvidd.
+- `MagazineDefinition` beskriver magasinets fasta kapacitet.
+- `Weapon` håller det föränderliga tillståndet för ett konkret vapen, inklusive magasin, patron i kammaren och skick.
+- `Magazine` håller aktuellt antal skott i ett konkret magasin.
+- `WeaponCatalog` samlar tillgängliga vapendefinitioner.
+
+Detta gör att flera konkreta vapen kan använda samma definition utan att dela ammunition eller skick. Nästa koppling är att placera spelarens utrustade `Weapon` och reservmagasin i `PlayerState` på ett sätt som låter `GameSession` skydda reglerna för byte, omladdning och avfyrning.
+
+`GameSession` är den samlade sanningskällan för förändringar som måste följa spelreglerna. Exempel är att avfyra vapnet, byta magasin, ladda om och kontrollera att ett magasin passar vapnet. `GameTurnService` bestämmer ordningen på stegen i en speltur, men avgör inte själv om handlingen är tillåten.
+
+Vanliga enkla föremål kan fortfarande vara generiska items. Vapen och magasin får egna modeller när de har identitet, tillstånd eller regler som behöver skyddas. Startutrustningen bör på sikt skapas av en separat match- eller scenfabrik i stället för att hårdkodas i aggregatets konstruktor.
 
 ### Rules engine
 

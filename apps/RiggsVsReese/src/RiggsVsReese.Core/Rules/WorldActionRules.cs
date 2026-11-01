@@ -17,8 +17,11 @@ public static class WorldActionRules
         string? target,
         GameState gameState)
     {
-        var hasTarget = gameState.Player.Inventory.Any(item =>
-            item.Name.Equals(target, StringComparison.OrdinalIgnoreCase));
+        var hasEquippedWeapon = gameState.Player.EquippedWeapon?.Definition.Name
+            .Equals(target, StringComparison.OrdinalIgnoreCase) == true;
+        var hasTargetInInventory = gameState.Player.Inventory.Any(item =>
+            item.Definition.Name.Equals(target, StringComparison.OrdinalIgnoreCase));
+        var hasTarget = hasEquippedWeapon || hasTargetInInventory;
 
         return new InteractionResult(
             action,
